@@ -1,0 +1,65 @@
+# Xamarin.Android
+# Build a Xamarin.Android project.
+# Add steps that test, sign, and distribute an app, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/xamarin
+
+trigger:
+- master
+
+pool:
+  vmImage: 'macos-latest'
+
+variables:
+- name: buildConfiguration
+  value: 'Debug'
+- name: outputDirectory
+  value: '$(build.binariesDirectory)/$(buildConfiguration)'
+
+- group: Android-Key-Group
+
+steps:
+- task: NuGetToolInstaller@1
+
+- task: NuGetCommand@2
+  inputs:
+    restoreSolution: '**/*.sln'
+    restoreDirectory: $(build.sourcesDirectory)/packages
+
+- task: XamarinAndroid@1
+  inputs:
+    projectFile: '**/*MobileDevOps.csproj'
+    outputDirectory: '$(outputDirectory)'
+    configuration: '$(buildConfiguration)'
+    jdkOption: 'JDKVersion'
+
+# Secrets are in Android-Key-Group
+- task: AndroidSigning@3
+  inputs:
+    apkFiles: $(outputDirectory)/com.companyname.MobileDevOps.apk
+    apksignerKeystoreFile: 'testing2.jks'
+    apksignerKeystorePassword: '$(keystore.password)'
+    apksignerKeystoreAlias: '$(key.alias)'
+    apksignerKeyPassword: '$(key.password)'
+
+- task: XamarinAndroid@1
+  inputs:
+    projectFile: '**/*UIAndroidTest.csproj'
+    outputDirectory: '$(outputDirectory)'
+    configuration: '$(buildConfiguration)'
+    createAppPackage: false
+    jdkOption: 'JDKVersion'
+
+- task: AppCenterTest@1
+  inputs:
+    appFile: $(outputDirectory)/com.companyname.MobileDevOps.apk
+    artifactsDirectory: '$(Build.ArtifactStagingDirectory)/AppCenterTest'
+    prepareTests: true
+    frameworkOption: 'uitest'
+    uiTestBuildDirectory: '$(outputDirectory)'
+    uiTestToolsDirectory: '$(build.sourcesDirectory)/packages/xamarin.uitest/3.0.3/tools'
+    credentialsOption: 'serviceEndpoint'
+    serverEndpoint: 'App Center Artasys'
+    appSlug: 'Mobile-DevOps/App1'
+    devices: 'Mobile-DevOps/main'
+    localeOption: 'en_US'
+    
