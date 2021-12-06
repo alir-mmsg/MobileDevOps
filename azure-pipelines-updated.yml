@@ -59,7 +59,18 @@ steps:
     uiTestToolsDirectory: '$(build.sourcesDirectory)/packages/xamarin.uitest/3.0.3/tools'
     credentialsOption: 'serviceEndpoint'
     serverEndpoint: 'App Center Artasys'
-    appSlug: 'Mobile-DevOps/App1'
-    devices: 'Mobile-DevOps/main'
+    appSlug: 'Mobile-DevOps-Demo/App1'
+    devices: 'Mobile-DevOps-Demo/main'
     localeOption: 'en_US'
-    
+
+
+- task: AppCenterDistribute@3
+  inputs:
+    serverEndpoint: 'App Center Artasys'
+    appSlug: 'Mobile-DevOps-Demo/App1'
+    appFile: $(outputDirectory)/com.companyname.MobileDevOps.apk
+    symbolsOption: 'Android'
+    releaseNotesOption: 'input'
+    releaseNotesInput: 'Enter release notes here'
+    destinationType: 'groups'
+    distributionGroupId: '226c2ffc-65b8-4234-9442-efac0ab06f40'
